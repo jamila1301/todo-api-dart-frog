@@ -33,12 +33,13 @@ Future<Response> _login(RequestContext context) async {
     }
 
     final authService = context.read<AuthenticationService>();
+
     final user = await authService.login(
       username: username,
       password: password,
     );
 
-    return Response.json(body: user.toJson());
+    return Response.json(body: user?.toJson());
   } on UserDoesNotExistException catch (e) {
     return Response(
       statusCode: HttpStatus.badRequest,

@@ -34,13 +34,16 @@ Future<Response> _register(RequestContext context) async {
       );
     }
 
-    await context.read<AuthenticationService>().register(
+    final user = await context.read<AuthenticationService>().register(
           fullName: fullName,
           username: username,
           password: password,
         );
 
-    return Response(statusCode: HttpStatus.created);
+    return Response.json(
+      statusCode: HttpStatus.created,
+      body: user.toJson(),
+    );
   } on UserAlreadyRegisteredException catch (e) {
     return Response(
       statusCode: HttpStatus.conflict,
