@@ -48,7 +48,7 @@ Future<Response> _login(RequestContext context) async {
   } catch (e, s) {
     return Response(
       statusCode: HttpStatus.internalServerError,
-      body: '$e => $s',
+      body: 'Something went wrong!',
     );
   }
 }

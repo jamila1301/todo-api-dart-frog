@@ -15,7 +15,7 @@ Handler middleware(Handler handler) {
           authenticator: (context, username, password) async {
             final authService = context.read<AuthenticationService>();
 
-            final user = authService.login(
+            final user = await authService.login(
               username: username,
               password: password,
             );
