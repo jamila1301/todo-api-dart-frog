@@ -1,6 +1,5 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
-import 'package:shelf_cors_headers/shelf_cors_headers.dart' as shelf;
 import 'package:todo_api/data_sources/authentication_service.dart';
 import 'package:todo_api/database/database_connector.dart';
 import 'package:todo_api/models/user.dart';
