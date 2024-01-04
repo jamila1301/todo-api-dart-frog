@@ -1,5 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_auth/dart_frog_auth.dart';
+import 'package:shelf_cors_headers/shelf_cors_headers.dart' as shelf;
 import 'package:todo_api/data_sources/authentication_service.dart';
 import 'package:todo_api/database/database_connector.dart';
 import 'package:todo_api/models/user.dart';
@@ -24,11 +25,11 @@ Handler middleware(Handler handler) {
           },
           applies: (RequestContext context) async {
             return context.request.uri !=
-                    Uri.parse('http://localhost:8080/auth/login') &&
+                    Uri.parse('http://192.168.100.67:8080/auth/login') &&
                 context.request.uri !=
-                    Uri.parse('http://localhost:8080/auth/register') &&
+                    Uri.parse('http://192.168.100.67:8080/auth/register') &&
                 context.request.uri !=
-                    Uri.parse('http://localhost:8080/auth/user');
+                    Uri.parse('http://192.168.100.67:8080/auth/user');
           },
         ),
       )
