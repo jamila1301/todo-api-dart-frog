@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:postgres/postgres.dart';
 import 'package:todo_api/database/database_connector.dart';
 import 'package:todo_api/exceptions/incorrect_credentials_exception.dart';
 import 'package:todo_api/exceptions/user_already_registered_exception.dart';
-import 'package:todo_api/exceptions/user_does_not_exist_exception.dart';
 import 'package:todo_api/models/user.dart';
 
 // ignore: public_member_api_docs
@@ -17,6 +15,7 @@ final class AuthenticationService {
   // ignore: public_member_api_docs
   final DatabaseConnector connector;
 
+  /// list of users
   Future<List<User>> getUsers() async {
     final result = await connector.connection!.execute('SELECT * FROM users');
 

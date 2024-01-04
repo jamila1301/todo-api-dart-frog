@@ -1,9 +1,11 @@
 import 'package:postgres/postgres.dart';
 
+/// TodoDataSource class
 final class TodoDataSource {
+  /// connection to database
   Connection? conn;
 
-  // init connection async
+  /// init connection async
   Future<void> initialize() async {
     conn = await Connection.open(
       Endpoint(
@@ -18,7 +20,7 @@ final class TodoDataSource {
     );
   }
 
-  // add new category
+  /// add new category
   Future<Map<String, dynamic>> addCategory(String name) async {
     await conn!.execute(
       "INSERT INTO category(title) VALUES('$name')",
@@ -34,7 +36,7 @@ final class TodoDataSource {
     };
   }
 
-  // get categories
+  /// get categories
   Future<List<Map<String, dynamic>>> getCategories() async {
     final result = await conn!.execute('SELECT * FROM category');
 
@@ -50,7 +52,7 @@ final class TodoDataSource {
     return categories;
   }
 
-  // close connection
+  /// close connection
   Future<void> close() async {
     await conn?.close();
   }

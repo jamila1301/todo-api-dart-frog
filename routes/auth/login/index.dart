@@ -45,7 +45,7 @@ Future<Response> _login(RequestContext context) async {
       statusCode: HttpStatus.badRequest,
       body: e.message,
     );
-  } catch (e, s) {
+  } catch (e) {
     return Response(
       statusCode: HttpStatus.internalServerError,
       body: 'Something went wrong!',
