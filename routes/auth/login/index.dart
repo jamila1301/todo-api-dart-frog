@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:todo_api/data_sources/authentication_service.dart';
+import 'package:todo_api/exceptions/incorrect_credentials_exception.dart';
 import 'package:todo_api/exceptions/user_does_not_exist_exception.dart';
 
 Future<Response> onRequest(RequestContext context) {
@@ -41,6 +42,11 @@ Future<Response> _login(RequestContext context) async {
 
     return Response.json(body: user?.toJson());
   } on UserDoesNotExistException catch (e) {
+    return Response(
+      statusCode: HttpStatus.badRequest,
+      body: e.message,
+    );
+  } on IncorrectCredentialsException catch (e) {
     return Response(
       statusCode: HttpStatus.badRequest,
       body: e.message,
