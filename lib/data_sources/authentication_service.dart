@@ -16,22 +16,19 @@ final class AuthenticationService {
   final DatabaseConnector connector;
 
   /// list of users
-  Future<List<User>> getUsers() async {
-    final result = await connector.connection!.execute('SELECT * FROM users');
+  Future<User> getUser(int id) async {
+    final result = await connector.connection!.execute(
+      'SELECT * FROM users '
+      'WHERE id = $id',
+    );
 
-    final users = <User>[];
+    final userRow = result.first;
 
-    for (final row in result) {
-      users.add(
-        User(
-          id: row[0]! as int,
-          fullName: row[1]! as String,
-          username: row[2]! as String,
-        ),
-      );
-    }
-
-    return users;
+    return User(
+      id: userRow[0]! as int,
+      fullName: userRow[1]! as String,
+      username: userRow[2]! as String,
+    );
   }
 
 // ignore: public_member_api_docs

@@ -23,12 +23,18 @@ Handler middleware(Handler handler) {
             return user;
           },
           applies: (RequestContext context) async {
-            return context.request.uri !=
-                    Uri.parse('http://192.168.100.67:8080/auth/login') &&
-                context.request.uri !=
-                    Uri.parse('http://192.168.100.67:8080/auth/register') &&
-                context.request.uri !=
-                    Uri.parse('http://192.168.100.67:8080/auth/user');
+            return (context.request.uri !=
+                        Uri.parse('http://192.168.100.67:8080/auth/login') &&
+                    context.request.uri !=
+                        Uri.parse('http://localhost:8080/auth/login')) &&
+                (context.request.uri !=
+                        Uri.parse('http://192.168.100.67:8080/auth/register') &&
+                    context.request.uri !=
+                        Uri.parse('http://localhost:8080/auth/register')) &&
+                (context.request.uri !=
+                        Uri.parse('http://192.168.100.67:8080/auth/user') ||
+                    context.request.uri !=
+                        Uri.parse('http://localhost:8080/auth/user'));
           },
         ),
       )

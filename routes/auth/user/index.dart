@@ -2,19 +2,22 @@ import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:todo_api/data_sources/authentication_service.dart';
+import 'package:todo_api/models/user.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
-    HttpMethod.get => _getUsers(context),
+    HttpMethod.get => _getUser(context),
     _ => Future.value(Response(statusCode: HttpStatus.methodNotAllowed)),
   };
 }
 
-Future<Response> _getUsers(RequestContext context) async {
+Future<Response> _getUser(RequestContext context) async {
   try {
-    final users = await context.read<AuthenticationService>().getUsers();
+    final user = await context.read<AuthenticationService>().getUser(
+          context.read<User>().id,
+        );
 
-    return Response.json(body: users.map((e) => e.toJson()).toList());
+    return Response.json(body: user);
   } catch (e) {
     return Response(
       statusCode: HttpStatus.internalServerError,
