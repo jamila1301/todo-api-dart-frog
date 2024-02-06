@@ -10,3 +10,16 @@ An example application built with dart_frog
 [license_link]: https://opensource.org/licenses/MIT
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
+
+# POST /categories
+{"title": "sdvsdvkdvd"}
+
+# GET /categories
+
+# DELETE /categories/2
+
+# PATCH /categories/2
+{"title": "sdvdvkd"}
+
+# PUT /categories
+{"id": 2, "title": "dsvdsvd" }

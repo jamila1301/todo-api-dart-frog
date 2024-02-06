@@ -1,26 +1,46 @@
-import 'package:postgres/postgres.dart';
+import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-/// {@template category}
-/// Category model
-/// {@endtemplate}
-class Category {
-  /// {@macro category}
+part 'category.g.dart';
+
+class CategoryList {
+  /// Contructor
+  const CategoryList();
+
+  /// toJson of User model
+  static List<dynamic> toJson(List<Category> categories) {
+    final list = <Map<String, dynamic>>[];
+
+    for (var i = 0; i < categories.length; i++) {
+      list.add(categories[i].toJson());
+    }
+
+    return list;
+  }
+}
+
+/// User Model
+@JsonSerializable()
+class Category extends Equatable {
+  /// Contructor
   const Category({
     required this.id,
     required this.title,
   });
 
-  /// {@macro category}
-  factory Category.fromRow(ResultRow row) {
-    return Category(
-      id: row[0]! as int,
-      title: row[1]! as String,
-    );
-  }
+  /// fromJson of User
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      _$CategoryFromJson(json);
 
-  /// id of the category
+  /// id
   final int id;
 
-  /// title of the category
+  /// title
   final String title;
+
+  /// toJson of User model
+  Map<String, dynamic> toJson() => _$CategoryToJson(this);
+
+  @override
+  List<Object?> get props => [id, title];
 }
