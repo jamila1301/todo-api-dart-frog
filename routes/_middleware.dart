@@ -61,7 +61,7 @@ Handler databaseConnectorProvider(Handler handler) {
         )
         .call(context);
 
-    await _databaseConnector!.close();
+    // await _databaseConnector!.close();
 
     return response;
   };
