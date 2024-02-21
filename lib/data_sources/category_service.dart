@@ -40,6 +40,32 @@ class CategoryService {
     }
   }
 
+  Future<Category> getCategoryById({
+    required int userId,
+    required String categoryId,
+  }) async {
+    try {
+      final categoriesResult = await connector.connection!.execute(
+        'SELECT * FROM categories WHERE user_id = $userId AND id = $categoryId',
+      );
+
+      if (categoriesResult.isEmpty) {
+        throw const EmptyDataException(
+          'Category for current user is not found!',
+        );
+      }
+
+      final categoryRow = categoriesResult[0];
+
+      return Category(
+        id: categoryRow[0]! as int,
+        title: categoryRow[1]! as String,
+      );
+    } catch (_) {
+      rethrow;
+    }
+  }
+
   Future<Category> createCategory({
     required int userId,
     required String title,
