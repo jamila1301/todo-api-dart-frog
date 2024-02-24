@@ -12,6 +12,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   return switch (context.request.method) {
     HttpMethod.get => _getCategory(context, id),
     HttpMethod.delete => _deleteCategory(context, id),
+    HttpMethod.patch => _updateCategory(context, id),
     _ => Future.value(Response(statusCode: HttpStatus.methodNotAllowed)),
   };
 }
@@ -59,6 +60,50 @@ Future<Response> _deleteCategory(RequestContext context, String id) async {
   } catch (e) {
     return ResponseHelper.prettyError(
       statusCode: HttpStatus.internalServerError,
+      message: e.toString(),
+    );
+  }
+}
+
+Future<Response> _updateCategory(RequestContext context, String id) async {
+  try {
+    final body = await context.request.json();
+    final title = (body as Map<String, dynamic>)['title'] as String?;
+
+    if (title == null) {
+      return ResponseHelper.prettyError(
+        statusCode: HttpStatus.badRequest,
+        message: 'title is required in body',
+      );
+    }
+
+    final categoryService = context.read<CategoryService>();
+
+    final category = await categoryService.updateCategory(
+      userId: context.read<User>().id,
+      categoryId: id,
+      newTitle: title,
+    );
+
+    return Response.json(
+      body: SuccessResult<Category>(
+        statusCode: HttpStatus.ok,
+        data: category,
+      ).toJson((category) => category.toJson()),
+    );
+  } on EmptyDataException catch (e) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.notFound,
+      message: e.message,
+    );
+  } on FormatException catch (_) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.badRequest,
+      message: 'title is required in body',
+    );
+  } catch (e) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.badRequest,
       message: e.toString(),
     );
   }

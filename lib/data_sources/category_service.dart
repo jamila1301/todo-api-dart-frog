@@ -1,6 +1,7 @@
 import 'package:postgres/postgres.dart';
 import 'package:todo_api/database/database_connector.dart';
 import 'package:todo_api/exceptions/empty_data_exception.dart';
+import 'package:todo_api/exceptions/same_title_exception.dart';
 import 'package:todo_api/exceptions/unique_body_exception.dart';
 import 'package:todo_api/models/category.dart';
 
@@ -80,10 +81,6 @@ class CategoryService {
         "SELECT * FROM categories WHERE user_id = $userId AND title='$title'",
       );
 
-      if (categoryResult.isEmpty) {
-        throw const EmptyDataException('Category for current user is empty!');
-      }
-
       final categoryRow = categoryResult.first;
 
       return Category(
@@ -120,6 +117,38 @@ class CategoryService {
 
       await connector.connection!.execute(
         'DELETE FROM categories WHERE user_id = $userId AND id=$categoryId',
+      );
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<Category> updateCategory({
+    required int userId,
+    required String categoryId,
+    required String newTitle,
+  }) async {
+    try {
+      final currentCategory = await getCategoryById(
+        userId: userId,
+        categoryId: categoryId,
+      );
+
+      if (currentCategory.title == newTitle) {
+        throw const SameTitleException(
+          "you can't give the same title for category",
+        );
+      }
+
+      await connector.connection!.execute(
+        'UPDATE categories '
+        "SET title = '$newTitle' "
+        'WHERE user_id = $userId AND id = $categoryId',
+      );
+
+      return Category(
+        id: currentCategory.id,
+        title: newTitle,
       );
     } catch (_) {
       rethrow;
