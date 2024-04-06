@@ -1,132 +1,108 @@
 import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
+import 'package:todo_api/data_sources/todo_service.dart';
+import 'package:todo_api/exceptions/empty_data_exception.dart';
+import 'package:todo_api/exceptions/invalid_body_exception.dart';
+import 'package:todo_api/exceptions/unique_body_exception.dart';
+import 'package:todo_api/models/category.dart';
+import 'package:todo_api/models/success_result.dart';
+import 'package:todo_api/models/todo.dart';
+import 'package:todo_api/models/todo_request_model.dart';
+import 'package:todo_api/utils/response_ext.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
     HttpMethod.get => _getTodos(context),
     HttpMethod.post => _createTodo(context),
-    HttpMethod.put => _updateTodo(context),
+    //  HttpMethod.put => _updateTodo(context),
     _ => Future.value(Response(statusCode: HttpStatus.methodNotAllowed)),
   };
 }
 
-Future<Response> _updateTodo(RequestContext context) async {
-  try {
-    final body = await context.request.json() as Map<String, dynamic>;
-    final id = body['id'] as int?;
-    final title = body['title'] as String?;
+// Future<Response> _updateTodo(RequestContext context) async {
+//   try {
+//     final body = await context.request.json() as Map<String, dynamic>;
+//     final id = body['id'] as int?;
+//     final title = body['title'] as String?;
 
-    if (id == null || title == null) {
-      return Response(statusCode: HttpStatus.badRequest);
-    }
+//     if (id == null || title == null) {
+//       return Response(statusCode: HttpStatus.badRequest);
+//     }
 
-    final index = cachedTodos.indexWhere((todo) => todo.id == id);
-    final updatedTodo = cachedTodos[index].copyWith(title: title);
-    cachedTodos[index] = updatedTodo;
+//     final index = cachedTodos.indexWhere((todo) => todo.id == id);
+//     final updatedTodo = cachedTodos[index].copyWith(title: title);
+//     cachedTodos[index] = updatedTodo;
 
-    return Response.json(body: updatedTodo.toJson());
-  } catch (e) {
-    return Response(
-      statusCode: HttpStatus.internalServerError,
-      body: e.toString(),
-    );
-  }
-}
+//     return Response.json(body: updatedTodo.toJson());
+//   } catch (e) {
+//     return Response(
+//       statusCode: HttpStatus.internalServerError,
+//       body: e.toString(),
+//     );
+//   }
+// }
 
 Future<Response> _createTodo(RequestContext context) async {
   try {
     final body = await context.request.json() as Map<String, dynamic>;
-    final title = body['title'] as String?;
+    final requestModel = TodoRequestModel.fromJson(body);
 
-    if (title == null) {
-      return Response(statusCode: HttpStatus.badRequest);
-    }
+    final todo = await context.read<TodoService>().createTodo(
+          requestModel,
+        );
 
-    final todo = Todo(
-      id: cachedTodos.length + 1,
-      title: title,
+    return Response.json(
+      body: SuccessResult<Todo>(
+        statusCode: HttpStatus.ok,
+        data: todo,
+      ).toJson((todo) => todo.toJson()),
     );
-
-    cachedTodos.add(todo);
-
-    return Response.json(body: todo.toJson());
+  } on UniqueBodyException catch (e) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.badRequest,
+      message: e.message,
+    );
   } catch (e) {
-    return Response(
+    return ResponseHelper.prettyError(
       statusCode: HttpStatus.internalServerError,
-      body: e.toString(),
+      message: e.toString(),
     );
   }
 }
 
 Future<Response> _getTodos(RequestContext context) async {
-  final queries = context.request.uri.queryParameters;
-  final query = queries['query'];
+  try {
+    final todoService = context.read<TodoService>();
+    final queryParams = context.request.uri.queryParameters;
+    final categoryId = queryParams['category_id'];
 
-  final todos = <Todo>[];
+    if (categoryId == null) {
+      return ResponseHelper.prettyError(
+        statusCode: HttpStatus.badRequest,
+        message: 'category_id as query params required!',
+      );
+    }
 
-  if (query == null) {
-    todos.addAll(cachedTodos);
-  } else {
-    final queriedTodos = cachedTodos.where(
-      (todo) => todo.title.contains(query),
+    final todos = await todoService.getTodoListByCategoryId(
+      categoryId: int.parse(categoryId),
     );
 
-    todos.addAll(queriedTodos);
-  }
-
-  final body = <Map<String, dynamic>>[];
-
-  for (final todo in todos) {
-    body.add(todo.toJson());
-  }
-
-  return Response.json(body: body);
-}
-
-final cachedTodos = [
-  Todo(
-    id: 1,
-    title: 'Learn Dart',
-  ),
-  Todo(
-    id: 2,
-    title: 'Learn Flutter',
-  ),
-  Todo(
-    id: 3,
-    title: 'Learn Dart Frog',
-  ),
-];
-
-class Todo {
-  Todo({
-    required this.id,
-    required this.title,
-  });
-
-  int id;
-  String title;
-
-  /// implement to json
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-    };
-  }
-
-  Todo copyWith({
-    String? title,
-  }) {
-    return Todo(
-      id: id,
-      title: title ?? this.title,
+    return Response.json(
+      body: SuccessResult<List<Todo>>(
+        statusCode: HttpStatus.ok,
+        data: todos,
+      ).toJson(TodoList.toJson),
     );
-  }
-
-  @override
-  String toString() {
-    return 'Todo{id: $id, title: $title}';
+  } on EmptyDataException catch (e) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.notFound,
+      message: e.message,
+    );
+  } catch (e) {
+    return ResponseHelper.prettyError(
+      statusCode: HttpStatus.badRequest,
+      message: e.toString(),
+    );
   }
 }

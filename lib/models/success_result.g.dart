@@ -11,7 +11,7 @@ SuccessResult<T> _$SuccessResultFromJson<T>(
   T Function(Object? json) fromJsonT,
 ) =>
     SuccessResult<T>(
-      statusCode: json['statusCode'] as int,
+      statusCode: json['status_code'] as int,
       data: fromJsonT(json['data']),
     );
 
@@ -20,6 +20,6 @@ Map<String, dynamic> _$SuccessResultToJson<T>(
   Object? Function(T value) toJsonT,
 ) =>
     <String, dynamic>{
-      'statusCode': instance.statusCode,
+      'status_code': instance.statusCode,
       'data': toJsonT(instance.data),
     };
