@@ -13,7 +13,8 @@ class TodoService {
   Future<List<Todo>> getTodoListByCategoryId({required int categoryId}) async {
     try {
       final todosResult = await connector.connection!.execute(
-        'SELECT * FROM todos WHERE category_id = $categoryId',
+        'SELECT * FROM todos WHERE category_id = $categoryId '
+        'ORDER BY created_at DESC',
       );
 
       if (todosResult.isEmpty) {
@@ -22,25 +23,55 @@ class TodoService {
         );
       }
 
-      final categories = <Todo>[];
+      final todoList = <Todo>[];
 
       for (var i = 0; i < todosResult.length; i++) {
-        final categoryRow = todosResult[i];
+        final todoRow = todosResult[i];
 
-        categories.add(
+        todoList.add(
           Todo(
-            id: categoryRow[0]! as int,
-            title: categoryRow[1]! as String,
-            description: categoryRow[2] as String?,
-            isCompleted: categoryRow[4]! as bool,
-            isImportant: categoryRow[5]! as bool,
-            createdAt: categoryRow[6]! as DateTime,
-            completedAt: categoryRow[7] as DateTime?,
+            id: todoRow[0]! as int,
+            title: todoRow[1]! as String,
+            description: todoRow[2] as String?,
+            isCompleted: todoRow[4]! as bool,
+            isImportant: todoRow[5]! as bool,
+            createdAt: todoRow[6]! as DateTime,
+            completedAt: todoRow[7] as DateTime?,
           ),
         );
       }
 
-      return categories;
+      return todoList;
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<Todo> getTodoById({
+    required String todoId,
+  }) async {
+    try {
+      final todoResult = await connector.connection!.execute(
+        'SELECT * FROM todos WHERE id = $todoId',
+      );
+
+      if (todoResult.isEmpty) {
+        throw const EmptyDataException(
+          'Todo for current user is not found!',
+        );
+      }
+
+      final todoRow = todoResult[0];
+
+      return Todo(
+        id: todoRow[0]! as int,
+        title: todoRow[1]! as String,
+        description: todoRow[2] as String?,
+        isCompleted: todoRow[4]! as bool,
+        isImportant: todoRow[5]! as bool,
+        createdAt: todoRow[6]! as DateTime,
+        completedAt: todoRow[7] as DateTime?,
+      );
     } catch (_) {
       rethrow;
     }
@@ -58,16 +89,16 @@ class TodoService {
         "AND title='${model.title}'",
       );
 
-      final categoryRow = todoResult.first;
+      final todoRow = todoResult.first;
 
       return Todo(
-        id: categoryRow[0]! as int,
-        title: categoryRow[1]! as String,
-        description: categoryRow[2] as String?,
-        isCompleted: categoryRow[4]! as bool,
-        isImportant: categoryRow[5]! as bool,
-        createdAt: categoryRow[6]! as DateTime,
-        completedAt: categoryRow[7] as DateTime?,
+        id: todoRow[0]! as int,
+        title: todoRow[1]! as String,
+        description: todoRow[2] as String?,
+        isCompleted: todoRow[4]! as bool,
+        isImportant: todoRow[5]! as bool,
+        createdAt: todoRow[6]! as DateTime,
+        completedAt: todoRow[7] as DateTime?,
       );
     } on ServerException catch (e) {
       if (e.code != null && e.code == '23505') {
@@ -78,6 +109,56 @@ class TodoService {
 
       rethrow;
     } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteTodo({
+    required String todoId,
+  }) async {
+    try {
+      final todoResult = await connector.connection!.execute(
+        "SELECT * FROM todos WHERE id='$todoId'",
+      );
+
+      if (todoResult.isEmpty) {
+        throw const EmptyDataException(
+          'Todo with given id does not exist!',
+        );
+      }
+
+      await connector.connection!.execute(
+        'DELETE FROM todos WHERE id=$todoId',
+      );
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<Todo> completeTodo(String id) async {
+    try {
+      await connector.connection!.execute(
+        'UPDATE todos '
+        'SET is_completed = true, completed_at=NOW() '
+        'WHERE id = $id',
+      );
+
+      return getTodoById(todoId: id);
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<Todo> markAsImportant(String id) async {
+    try {
+      await connector.connection!.execute(
+        'UPDATE todos '
+        'SET is_important = true '
+        'WHERE id = $id',
+      );
+
+      return getTodoById(todoId: id);
+    } catch (_) {
       rethrow;
     }
   }
